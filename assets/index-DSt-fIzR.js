@@ -1,3 +1,9 @@
+var __defProp = Object.defineProperty;
+var __defNormalProp = (obj, key, value) => key in obj ? __defProp(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __publicField = (obj, key, value) => {
+  __defNormalProp(obj, typeof key !== "symbol" ? key + "" : key, value);
+  return value;
+};
 function _mergeNamespaces(n2, m2) {
   for (var i = 0; i < m2.length; i++) {
     const e2 = m2[i];
@@ -386,7 +392,7 @@ reactJsxRuntime_production_min.jsxs = q$1;
   jsxRuntime.exports = reactJsxRuntime_production_min;
 }
 var jsxRuntimeExports = jsxRuntime.exports;
-var isDevelopment$2 = false;
+var isDevelopment$3 = false;
 function sheetForTag(tag) {
   if (tag.sheet) {
     return tag.sheet;
@@ -427,7 +433,7 @@ var StyleSheet = /* @__PURE__ */ function() {
       _this.container.insertBefore(tag, before);
       _this.tags.push(tag);
     };
-    this.isSpeedy = options.speedy === void 0 ? !isDevelopment$2 : options.speedy;
+    this.isSpeedy = options.speedy === void 0 ? !isDevelopment$3 : options.speedy;
     this.tags = [];
     this.ctr = 0;
     this.nonce = options.nonce;
@@ -1123,6 +1129,20 @@ var createCache = function createCache2(options) {
   cache.sheet.hydrate(nodesToHydrate);
   return cache;
 };
+function _extends() {
+  _extends = Object.assign ? Object.assign.bind() : function(target) {
+    for (var i = 1; i < arguments.length; i++) {
+      var source = arguments[i];
+      for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+          target[key] = source[key];
+        }
+      }
+    }
+    return target;
+  };
+  return _extends.apply(this, arguments);
+}
 var reactIs$1 = { exports: {} };
 var reactIs_production_min = {};
 /** @license React v16.13.1
@@ -1362,7 +1382,7 @@ var unitlessKeys = {
   strokeOpacity: 1,
   strokeWidth: 1
 };
-var isDevelopment$1 = false;
+var isDevelopment$2 = false;
 var hyphenateRegex = /[A-Z]|^ms/g;
 var animationRegex = /_EMO_([^_]+?)_([^]*?)_EMO_/g;
 var isCustomProperty = function isCustomProperty2(property) {
@@ -1447,9 +1467,11 @@ function handleInterpolation(mergedProps, registered, interpolation) {
     }
   }
   var asString = interpolation;
-  {
+  if (registered == null) {
     return asString;
   }
+  var cached = registered[asString];
+  return cached !== void 0 ? cached : asString;
 }
 function createStringFromObject(mergedProps, registered, obj) {
   var string = "";
@@ -1462,14 +1484,16 @@ function createStringFromObject(mergedProps, registered, obj) {
       var value = obj[key];
       if (typeof value !== "object") {
         var asString = value;
-        if (isProcessableValue(asString)) {
+        if (registered != null && registered[asString] !== void 0) {
+          string += key + "{" + registered[asString] + "}";
+        } else if (isProcessableValue(asString)) {
           string += processStyleName(key) + ":" + processStyleValue(key, asString) + ";";
         }
       } else {
-        if (key === "NO_COMPONENT_SELECTOR" && isDevelopment$1) {
+        if (key === "NO_COMPONENT_SELECTOR" && isDevelopment$2) {
           throw new Error(noComponentSelectorMessage);
         }
-        if (Array.isArray(value) && typeof value[0] === "string" && registered == null) {
+        if (Array.isArray(value) && typeof value[0] === "string" && (registered == null || registered[value[0]] === void 0)) {
           for (var _i = 0; _i < value.length; _i++) {
             if (isProcessableValue(value[_i])) {
               string += processStyleName(key) + ":" + processStyleValue(key, value[_i]) + ";";
@@ -1535,7 +1559,7 @@ var syncFallback = function syncFallback2(create) {
 };
 var useInsertionEffect = React$1["useInsertionEffect"] ? React$1["useInsertionEffect"] : false;
 var useInsertionEffectAlwaysWithSyncFallback = useInsertionEffect || syncFallback;
-var isDevelopment = false;
+var isDevelopment$1 = false;
 var EmotionCacheContext = /* @__PURE__ */ reactExports.createContext(
   // we're doing this to avoid preconstruct's dead code elimination in this one case
   // because this module is primarily intended for the browser and node
@@ -1567,7 +1591,7 @@ var createEmotionProps = function createEmotionProps2(type, props) {
   newProps[typePropName] = type;
   return newProps;
 };
-var Insertion = function Insertion2(_ref) {
+var Insertion$1 = function Insertion(_ref) {
   var cache = _ref.cache, serialized = _ref.serialized, isStringTag = _ref.isStringTag;
   registerStyles(cache, serialized, isStringTag);
   useInsertionEffectAlwaysWithSyncFallback(function() {
@@ -1592,7 +1616,7 @@ var Emotion = /* @__PURE__ */ withEmotionCache(function(props, cache, ref) {
   className += cache.key + "-" + serialized.name;
   var newProps = {};
   for (var _key2 in props) {
-    if (hasOwn.call(props, _key2) && _key2 !== "css" && _key2 !== typePropName && !isDevelopment) {
+    if (hasOwn.call(props, _key2) && _key2 !== "css" && _key2 !== typePropName && !isDevelopment$1) {
       newProps[_key2] = props[_key2];
     }
   }
@@ -1600,13 +1624,14 @@ var Emotion = /* @__PURE__ */ withEmotionCache(function(props, cache, ref) {
   if (ref) {
     newProps.ref = ref;
   }
-  return /* @__PURE__ */ reactExports.createElement(reactExports.Fragment, null, /* @__PURE__ */ reactExports.createElement(Insertion, {
+  return /* @__PURE__ */ reactExports.createElement(reactExports.Fragment, null, /* @__PURE__ */ reactExports.createElement(Insertion$1, {
     cache,
     serialized,
     isStringTag: typeof WrappedComponent === "string"
   }), /* @__PURE__ */ reactExports.createElement(WrappedComponent, newProps));
 });
 var Emotion$1 = Emotion;
+var Fragment = jsxRuntimeExports.Fragment;
 var jsx$1 = function jsx(type, props, key) {
   if (!hasOwn.call(props, "css")) {
     return jsxRuntimeExports.jsx(type, props, key);
@@ -8865,47 +8890,464 @@ function css() {
   }
   return serializeStyles(args);
 }
-const Button = ({ backgroundColor = "#000", children, ...props }) => {
-  return /* @__PURE__ */ jsx$1("button", { css: buttonStyle(backgroundColor), ...props, children });
+var reactPropsRegex = /^((children|dangerouslySetInnerHTML|key|ref|autoFocus|defaultValue|defaultChecked|innerHTML|suppressContentEditableWarning|suppressHydrationWarning|valueLink|abbr|accept|acceptCharset|accessKey|action|allow|allowUserMedia|allowPaymentRequest|allowFullScreen|allowTransparency|alt|async|autoComplete|autoPlay|capture|cellPadding|cellSpacing|challenge|charSet|checked|cite|classID|className|cols|colSpan|content|contentEditable|contextMenu|controls|controlsList|coords|crossOrigin|data|dateTime|decoding|default|defer|dir|disabled|disablePictureInPicture|disableRemotePlayback|download|draggable|encType|enterKeyHint|fetchpriority|fetchPriority|form|formAction|formEncType|formMethod|formNoValidate|formTarget|frameBorder|headers|height|hidden|high|href|hrefLang|htmlFor|httpEquiv|id|inputMode|integrity|is|keyParams|keyType|kind|label|lang|list|loading|loop|low|marginHeight|marginWidth|max|maxLength|media|mediaGroup|method|min|minLength|multiple|muted|name|nonce|noValidate|open|optimum|pattern|placeholder|playsInline|poster|preload|profile|radioGroup|readOnly|referrerPolicy|rel|required|reversed|role|rows|rowSpan|sandbox|scope|scoped|scrolling|seamless|selected|shape|size|sizes|slot|span|spellCheck|src|srcDoc|srcLang|srcSet|start|step|style|summary|tabIndex|target|title|translate|type|useMap|value|width|wmode|wrap|about|datatype|inlist|prefix|property|resource|typeof|vocab|autoCapitalize|autoCorrect|autoSave|color|incremental|fallback|inert|itemProp|itemScope|itemType|itemID|itemRef|on|option|results|security|unselectable|accentHeight|accumulate|additive|alignmentBaseline|allowReorder|alphabetic|amplitude|arabicForm|ascent|attributeName|attributeType|autoReverse|azimuth|baseFrequency|baselineShift|baseProfile|bbox|begin|bias|by|calcMode|capHeight|clip|clipPathUnits|clipPath|clipRule|colorInterpolation|colorInterpolationFilters|colorProfile|colorRendering|contentScriptType|contentStyleType|cursor|cx|cy|d|decelerate|descent|diffuseConstant|direction|display|divisor|dominantBaseline|dur|dx|dy|edgeMode|elevation|enableBackground|end|exponent|externalResourcesRequired|fill|fillOpacity|fillRule|filter|filterRes|filterUnits|floodColor|floodOpacity|focusable|fontFamily|fontSize|fontSizeAdjust|fontStretch|fontStyle|fontVariant|fontWeight|format|from|fr|fx|fy|g1|g2|glyphName|glyphOrientationHorizontal|glyphOrientationVertical|glyphRef|gradientTransform|gradientUnits|hanging|horizAdvX|horizOriginX|ideographic|imageRendering|in|in2|intercept|k|k1|k2|k3|k4|kernelMatrix|kernelUnitLength|kerning|keyPoints|keySplines|keyTimes|lengthAdjust|letterSpacing|lightingColor|limitingConeAngle|local|markerEnd|markerMid|markerStart|markerHeight|markerUnits|markerWidth|mask|maskContentUnits|maskUnits|mathematical|mode|numOctaves|offset|opacity|operator|order|orient|orientation|origin|overflow|overlinePosition|overlineThickness|panose1|paintOrder|pathLength|patternContentUnits|patternTransform|patternUnits|pointerEvents|points|pointsAtX|pointsAtY|pointsAtZ|preserveAlpha|preserveAspectRatio|primitiveUnits|r|radius|refX|refY|renderingIntent|repeatCount|repeatDur|requiredExtensions|requiredFeatures|restart|result|rotate|rx|ry|scale|seed|shapeRendering|slope|spacing|specularConstant|specularExponent|speed|spreadMethod|startOffset|stdDeviation|stemh|stemv|stitchTiles|stopColor|stopOpacity|strikethroughPosition|strikethroughThickness|string|stroke|strokeDasharray|strokeDashoffset|strokeLinecap|strokeLinejoin|strokeMiterlimit|strokeOpacity|strokeWidth|surfaceScale|systemLanguage|tableValues|targetX|targetY|textAnchor|textDecoration|textRendering|textLength|to|transform|u1|u2|underlinePosition|underlineThickness|unicode|unicodeBidi|unicodeRange|unitsPerEm|vAlphabetic|vHanging|vIdeographic|vMathematical|values|vectorEffect|version|vertAdvY|vertOriginX|vertOriginY|viewBox|viewTarget|visibility|widths|wordSpacing|writingMode|x|xHeight|x1|x2|xChannelSelector|xlinkActuate|xlinkArcrole|xlinkHref|xlinkRole|xlinkShow|xlinkTitle|xlinkType|xmlBase|xmlns|xmlnsXlink|xmlLang|xmlSpace|y|y1|y2|yChannelSelector|z|zoomAndPan|for|class|autofocus)|(([Dd][Aa][Tt][Aa]|[Aa][Rr][Ii][Aa]|x)-.*))$/;
+var isPropValid = /* @__PURE__ */ memoize(
+  function(prop) {
+    return reactPropsRegex.test(prop) || prop.charCodeAt(0) === 111 && prop.charCodeAt(1) === 110 && prop.charCodeAt(2) < 91;
+  }
+  /* Z+1 */
+);
+var isDevelopment = false;
+var testOmitPropsOnStringTag = isPropValid;
+var testOmitPropsOnComponent = function testOmitPropsOnComponent2(key) {
+  return key !== "theme";
 };
-const buttonStyle = (backgroundColor) => css`
+var getDefaultShouldForwardProp = function getDefaultShouldForwardProp2(tag) {
+  return typeof tag === "string" && // 96 is one less than the char code
+  // for "a" so this is checking that
+  // it's a lowercase character
+  tag.charCodeAt(0) > 96 ? testOmitPropsOnStringTag : testOmitPropsOnComponent;
+};
+var composeShouldForwardProps = function composeShouldForwardProps2(tag, options, isReal) {
+  var shouldForwardProp;
+  if (options) {
+    var optionsShouldForwardProp = options.shouldForwardProp;
+    shouldForwardProp = tag.__emotion_forwardProp && optionsShouldForwardProp ? function(propName) {
+      return tag.__emotion_forwardProp(propName) && optionsShouldForwardProp(propName);
+    } : optionsShouldForwardProp;
+  }
+  if (typeof shouldForwardProp !== "function" && isReal) {
+    shouldForwardProp = tag.__emotion_forwardProp;
+  }
+  return shouldForwardProp;
+};
+var Insertion2 = function Insertion3(_ref) {
+  var cache = _ref.cache, serialized = _ref.serialized, isStringTag = _ref.isStringTag;
+  registerStyles(cache, serialized, isStringTag);
+  useInsertionEffectAlwaysWithSyncFallback(function() {
+    return insertStyles(cache, serialized, isStringTag);
+  });
+  return null;
+};
+var createStyled = function createStyled2(tag, options) {
+  var isReal = tag.__emotion_real === tag;
+  var baseTag = isReal && tag.__emotion_base || tag;
+  var identifierName;
+  var targetClassName;
+  if (options !== void 0) {
+    identifierName = options.label;
+    targetClassName = options.target;
+  }
+  var shouldForwardProp = composeShouldForwardProps(tag, options, isReal);
+  var defaultShouldForwardProp = shouldForwardProp || getDefaultShouldForwardProp(baseTag);
+  var shouldUseAs = !defaultShouldForwardProp("as");
+  return function() {
+    var args = arguments;
+    var styles = isReal && tag.__emotion_styles !== void 0 ? tag.__emotion_styles.slice(0) : [];
+    if (identifierName !== void 0) {
+      styles.push("label:" + identifierName + ";");
+    }
+    if (args[0] == null || args[0].raw === void 0) {
+      styles.push.apply(styles, args);
+    } else {
+      var templateStringsArr = args[0];
+      styles.push(templateStringsArr[0]);
+      var len = args.length;
+      var i = 1;
+      for (; i < len; i++) {
+        styles.push(args[i], templateStringsArr[i]);
+      }
+    }
+    var Styled = withEmotionCache(function(props, cache, ref) {
+      var FinalTag = shouldUseAs && props.as || baseTag;
+      var className = "";
+      var classInterpolations = [];
+      var mergedProps = props;
+      if (props.theme == null) {
+        mergedProps = {};
+        for (var key in props) {
+          mergedProps[key] = props[key];
+        }
+        mergedProps.theme = reactExports.useContext(ThemeContext);
+      }
+      if (typeof props.className === "string") {
+        className = getRegisteredStyles(cache.registered, classInterpolations, props.className);
+      } else if (props.className != null) {
+        className = props.className + " ";
+      }
+      var serialized = serializeStyles(styles.concat(classInterpolations), cache.registered, mergedProps);
+      className += cache.key + "-" + serialized.name;
+      if (targetClassName !== void 0) {
+        className += " " + targetClassName;
+      }
+      var finalShouldForwardProp = shouldUseAs && shouldForwardProp === void 0 ? getDefaultShouldForwardProp(FinalTag) : defaultShouldForwardProp;
+      var newProps = {};
+      for (var _key in props) {
+        if (shouldUseAs && _key === "as")
+          continue;
+        if (finalShouldForwardProp(_key)) {
+          newProps[_key] = props[_key];
+        }
+      }
+      newProps.className = className;
+      if (ref) {
+        newProps.ref = ref;
+      }
+      return /* @__PURE__ */ reactExports.createElement(reactExports.Fragment, null, /* @__PURE__ */ reactExports.createElement(Insertion2, {
+        cache,
+        serialized,
+        isStringTag: typeof FinalTag === "string"
+      }), /* @__PURE__ */ reactExports.createElement(FinalTag, newProps));
+    });
+    Styled.displayName = identifierName !== void 0 ? identifierName : "Styled(" + (typeof baseTag === "string" ? baseTag : baseTag.displayName || baseTag.name || "Component") + ")";
+    Styled.defaultProps = tag.defaultProps;
+    Styled.__emotion_real = Styled;
+    Styled.__emotion_base = baseTag;
+    Styled.__emotion_styles = styles;
+    Styled.__emotion_forwardProp = shouldForwardProp;
+    Object.defineProperty(Styled, "toString", {
+      value: function value() {
+        if (targetClassName === void 0 && isDevelopment) {
+          return "NO_COMPONENT_SELECTOR";
+        }
+        return "." + targetClassName;
+      }
+    });
+    Styled.withComponent = function(nextTag, nextOptions) {
+      var newStyled2 = createStyled2(nextTag, _extends({}, options, nextOptions, {
+        shouldForwardProp: composeShouldForwardProps(Styled, nextOptions, true)
+      }));
+      return newStyled2.apply(void 0, styles);
+    };
+    return Styled;
+  };
+};
+var tags = [
+  "a",
+  "abbr",
+  "address",
+  "area",
+  "article",
+  "aside",
+  "audio",
+  "b",
+  "base",
+  "bdi",
+  "bdo",
+  "big",
+  "blockquote",
+  "body",
+  "br",
+  "button",
+  "canvas",
+  "caption",
+  "cite",
+  "code",
+  "col",
+  "colgroup",
+  "data",
+  "datalist",
+  "dd",
+  "del",
+  "details",
+  "dfn",
+  "dialog",
+  "div",
+  "dl",
+  "dt",
+  "em",
+  "embed",
+  "fieldset",
+  "figcaption",
+  "figure",
+  "footer",
+  "form",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "head",
+  "header",
+  "hgroup",
+  "hr",
+  "html",
+  "i",
+  "iframe",
+  "img",
+  "input",
+  "ins",
+  "kbd",
+  "keygen",
+  "label",
+  "legend",
+  "li",
+  "link",
+  "main",
+  "map",
+  "mark",
+  "marquee",
+  "menu",
+  "menuitem",
+  "meta",
+  "meter",
+  "nav",
+  "noscript",
+  "object",
+  "ol",
+  "optgroup",
+  "option",
+  "output",
+  "p",
+  "param",
+  "picture",
+  "pre",
+  "progress",
+  "q",
+  "rp",
+  "rt",
+  "ruby",
+  "s",
+  "samp",
+  "script",
+  "section",
+  "select",
+  "small",
+  "source",
+  "span",
+  "strong",
+  "style",
+  "sub",
+  "summary",
+  "sup",
+  "table",
+  "tbody",
+  "td",
+  "textarea",
+  "tfoot",
+  "th",
+  "thead",
+  "time",
+  "title",
+  "tr",
+  "track",
+  "u",
+  "ul",
+  "var",
+  "video",
+  "wbr",
+  // SVG
+  "circle",
+  "clipPath",
+  "defs",
+  "ellipse",
+  "foreignObject",
+  "g",
+  "image",
+  "line",
+  "linearGradient",
+  "mask",
+  "path",
+  "pattern",
+  "polygon",
+  "polyline",
+  "radialGradient",
+  "rect",
+  "stop",
+  "svg",
+  "text",
+  "tspan"
+];
+var newStyled = createStyled.bind(null);
+tags.forEach(function(tagName) {
+  newStyled[tagName] = newStyled(tagName);
+});
+const Button$1 = newStyled.button`
   display: flex;
   gap: 4px;
+  justify-content: center;
   align-items: center;
   padding: 4px 8px;
-  background-color: ${backgroundColor};
+  background-color: ${({ backgroundColor }) => backgroundColor};
   border-radius: 4px;
   border: none;
   cursor: pointer;
 `;
-const Card = ({ children }) => {
-  return /* @__PURE__ */ jsx$1("div", { css: cardStyle, children });
-};
-Card.Preview = ({ children }) => {
-  return /* @__PURE__ */ jsx$1("div", { css: previewStyle, children });
-};
-Card.Content = ({ children, ...props }) => {
-  return /* @__PURE__ */ jsx$1("div", { css: cardContentStyle, ...props, children });
-};
-const cardStyle = css`
+function Button({ backgroundColor = "#000", children, ...props }) {
+  return /* @__PURE__ */ jsx$1(Button$1, { backgroundColor, ...props, children });
+}
+const CardWrapper$1 = newStyled.div`
   max-width: 166px;
   overflow: hidden;
   border-radius: 8px;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
 `;
-const previewStyle = css`
+const CardPreview = newStyled.div`
   max-height: 112px;
   overflow: hidden;
+  position: relative;
   img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
 `;
-const cardContentStyle = css`
+const CardContent = newStyled.div`
   padding: 15px 8px 8px;
 `;
-const ShoppingBag = (props) => {
+function Card({ children }) {
+  return /* @__PURE__ */ jsx$1(CardWrapper$1, { children });
+}
+Card.Preview = ({ children }) => {
+  return /* @__PURE__ */ jsx$1(CardPreview, { children });
+};
+Card.Content = ({ children, ...props }) => {
+  return /* @__PURE__ */ jsx$1(CardContent, { ...props, children });
+};
+const ErrorContext = reactExports.createContext({
+  errorMessage: "",
+  showError: (message) => {
+    console.log("showError", message);
+  },
+  hideError: () => {
+  }
+});
+function ErrorProvider({ children }) {
+  const [errorMessage, setErrorMessage] = reactExports.useState("");
+  const showError = (message) => setErrorMessage(message);
+  const hideError = () => setErrorMessage("");
+  return /* @__PURE__ */ jsx$1(ErrorContext.Provider, { value: { errorMessage, showError, hideError }, children });
+}
+function useError() {
+  return reactExports.useContext(ErrorContext);
+}
+const ErrorPopupWrapper = newStyled.div`
+  position: absolute;
+  top: 64px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  color: #000;
+  background-color: #ffc9c9;
+  padding: 12px 0;
+`;
+function ErrorPopup() {
+  const { errorMessage, hideError } = useError();
+  reactExports.useEffect(() => {
+    const timer = setTimeout(() => {
+      hideError();
+    }, 3e3);
+    return () => clearTimeout(timer);
+  }, [errorMessage, hideError]);
+  if (!errorMessage)
+    return null;
+  return /* @__PURE__ */ jsx$1(ErrorPopupWrapper, { role: "alert", "aria-live": "assertive", children: /* @__PURE__ */ jsx$1(Text, { children: errorMessage }) });
+}
+const _BaseApi = class _BaseApi {
+  static getHeaders() {
+    return {
+      Authorization: `Basic ${"Z3Vlc3VuZzpwYXNzd29yZA=="}`,
+      "Content-Type": "application/json"
+    };
+  }
+  static async get(path, options) {
+    const response = await fetch(`${_BaseApi.baseUrl}${path}`, {
+      headers: _BaseApi.getHeaders(),
+      ...options
+    });
+    return response.json();
+  }
+  static async post(path, options) {
+    await fetch(`${_BaseApi.baseUrl}${path}`, {
+      method: "POST",
+      headers: _BaseApi.getHeaders(),
+      ...options
+    });
+  }
+  static async put(path, options) {
+    await fetch(`${_BaseApi.baseUrl}${path}`, {
+      method: "PUT",
+      headers: _BaseApi.getHeaders(),
+      ...options
+    });
+  }
+  static async patch(path, options) {
+    await fetch(`${_BaseApi.baseUrl}${path}`, {
+      method: "PATCH",
+      headers: _BaseApi.getHeaders(),
+      ...options
+    });
+  }
+  static async delete(path, options) {
+    await fetch(`${_BaseApi.baseUrl}${path}`, {
+      method: "DELETE",
+      headers: _BaseApi.getHeaders(),
+      ...options
+    });
+  }
+};
+__publicField(_BaseApi, "baseUrl", "http://techcourse-lv2-alb-974870821.ap-northeast-2.elb.amazonaws.com");
+let BaseApi = _BaseApi;
+const DEFAULT_IMAGE_URL = "https://www.next-t.co.kr/public/uploads/7b7f7e2138e29e598cd0cdf2c85ea08d.jpg";
+const PATH = {
+  products: "/products",
+  cartItems: "/cart-items"
+};
+class CartItemApi extends BaseApi {
+  static async getCartItems({
+    page = 0,
+    size = 20,
+    sort = "asc"
+  } = {}) {
+    const searchParams = new URLSearchParams({
+      page: String(page),
+      size: String(size),
+      sort
+    });
+    return BaseApi.get(`${PATH.cartItems}?${searchParams.toString()}`);
+  }
+  static async postCartItems({ productId, quantity = 1 }) {
+    return BaseApi.post(`${PATH.cartItems}`, {
+      body: JSON.stringify({ productId, quantity })
+    });
+  }
+  static async deleteCartItems({ cartItemId }) {
+    return BaseApi.delete(`${PATH.cartItems}/${cartItemId}`);
+  }
+  static async patchCartItems({ cartItemId, quantity }) {
+    return BaseApi.patch(`${PATH.cartItems}/${cartItemId}`, {
+      body: JSON.stringify({ quantity })
+    });
+  }
+}
+class ProductApi extends BaseApi {
+  static async getAllProducts({
+    page = 0,
+    size = 20,
+    sort = "asc"
+  } = {}) {
+    const searchParams = new URLSearchParams({
+      page: String(page),
+      size: String(size),
+      sort
+    });
+    return BaseApi.get(`${PATH.products}?${searchParams.toString()}`);
+  }
+}
+function AddCartIcon(props) {
+  return /* @__PURE__ */ jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", ...props, children: [
+    /* @__PURE__ */ jsx$1("g", { clipPath: "url(#clip0_1275_11824)", children: /* @__PURE__ */ jsx$1(
+      "path",
+      {
+        d: "M7.33073 6.00033H8.66406V4.00033H10.6641V2.66699H8.66406V0.666992H7.33073V2.66699H5.33073V4.00033H7.33073V6.00033ZM4.66406 12.0003C3.93073 12.0003 3.3374 12.6003 3.3374 13.3337C3.3374 14.067 3.93073 14.667 4.66406 14.667C5.3974 14.667 5.9974 14.067 5.9974 13.3337C5.9974 12.6003 5.3974 12.0003 4.66406 12.0003ZM11.3307 12.0003C10.5974 12.0003 10.0041 12.6003 10.0041 13.3337C10.0041 14.067 10.5974 14.667 11.3307 14.667C12.0641 14.667 12.6641 14.067 12.6641 13.3337C12.6641 12.6003 12.0641 12.0003 11.3307 12.0003ZM4.7774 9.83366L4.7974 9.75366L5.3974 8.66699H10.3641C10.8641 8.66699 11.3041 8.39366 11.5307 7.98033L14.1041 3.30699L12.9441 2.66699H12.9374L12.2041 4.00033L10.3641 7.33366H5.68406L5.5974 7.15366L4.10406 4.00033L3.47073 2.66699L2.84406 1.33366H0.664062V2.66699H1.9974L4.3974 7.72699L3.4974 9.36033C3.39073 9.54699 3.33073 9.76699 3.33073 10.0003C3.33073 10.7337 3.93073 11.3337 4.66406 11.3337H12.6641V10.0003H4.94406C4.8574 10.0003 4.7774 9.92699 4.7774 9.83366Z",
+        fill: "white"
+      }
+    ) }),
+    /* @__PURE__ */ jsx$1("defs", { children: /* @__PURE__ */ jsx$1("clipPath", { id: "clip0_1275_11824", children: /* @__PURE__ */ jsx$1("rect", { width: "16", height: "16", fill: "white" }) }) })
+  ] });
+}
+const ShoppingBagIcon = (props) => {
   return /* @__PURE__ */ jsx$1("svg", { width: "33", height: "32", viewBox: "0 0 33 32", fill: "none", xmlns: "http://www.w3.org/2000/svg", ...props, children: /* @__PURE__ */ jsx$1(
     "path",
     {
@@ -8914,16 +9356,99 @@ const ShoppingBag = (props) => {
     }
   ) });
 };
-const Header = ({ shoppingCount = 0 }) => {
-  return /* @__PURE__ */ jsxs("header", { css: headerStyle, children: [
-    /* @__PURE__ */ jsx$1("span", { children: "SHOP" }),
-    /* @__PURE__ */ jsxs("div", { css: shoppingBagStyle, children: [
-      /* @__PURE__ */ jsx$1(ShoppingBag, {}),
-      shoppingCount !== 0 && /* @__PURE__ */ jsx$1("span", { css: shoppingBagCountStyle, children: shoppingCount })
-    ] })
-  ] });
-};
-const headerStyle = css`
+function TopArrowIcon(props) {
+  return /* @__PURE__ */ jsx$1("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", ...props, children: /* @__PURE__ */ jsx$1(
+    "path",
+    {
+      d: "M12.1789 9.5504L8.35899 5.73047L4.53906 9.5504",
+      stroke: "#ACACAC",
+      strokeWidth: "1.32867",
+      strokeLinecap: "round",
+      strokeLinejoin: "round"
+    }
+  ) });
+}
+function CloseIcon(props) {
+  return /* @__PURE__ */ jsx$1("svg", { width: "15", height: "14", viewBox: "0 0 15 14", fill: "none", xmlns: "http://www.w3.org/2000/svg", ...props, children: /* @__PURE__ */ jsx$1(
+    "path",
+    {
+      d: "M14.8167 1.41L13.4067 0L7.81665 5.59L2.22665 0L0.81665 1.41L6.40665 7L0.81665 12.59L2.22665 14L7.81665 8.41L13.4067 14L14.8167 12.59L9.22665 7L14.8167 1.41Z",
+      fill: "black"
+    }
+  ) });
+}
+const QueryClientContext = reactExports.createContext({
+  getQueryData: () => {
+    throw new Error("QueryProvider를 찾을 수 없습니다.");
+  },
+  setQueryData: () => {
+    throw new Error("QueryProvider를 찾을 수 없습니다.");
+  },
+  getQueryStatus: () => "idle",
+  setQueryStatus: () => {
+    throw new Error("QueryProvider를 찾을 수 없습니다.");
+  }
+});
+const useQueryClient = () => reactExports.useContext(QueryClientContext);
+function QueryProvider({ children }) {
+  const [data, setData] = reactExports.useState({});
+  const [status, setStatus] = reactExports.useState({});
+  const setQueryData = (queryKey, data2) => {
+    setData((prev2) => ({ ...prev2, [queryKey]: data2 }));
+  };
+  const getQueryData = (queryKey) => {
+    return data[queryKey];
+  };
+  const setQueryStatus = (queryKey, status2) => {
+    setStatus((prev2) => ({ ...prev2, [queryKey]: status2 }));
+  };
+  const getQueryStatus = (queryKey) => {
+    return status[queryKey] ?? "idle";
+  };
+  return /* @__PURE__ */ jsx$1(
+    QueryClientContext.Provider,
+    {
+      value: {
+        getQueryData,
+        setQueryData,
+        getQueryStatus,
+        setQueryStatus
+      },
+      children
+    }
+  );
+}
+function useQuery({ queryKey, queryFn }) {
+  const { getQueryData, setQueryData, getQueryStatus, setQueryStatus } = useQueryClient();
+  const fetchData = async (forceFetch = false) => {
+    setQueryStatus(queryKey, "loading");
+    try {
+      if (getQueryData(queryKey) && !forceFetch) {
+        setQueryStatus(queryKey, "success");
+        return;
+      }
+      const response = await queryFn();
+      setQueryData(queryKey, response);
+      setQueryStatus(queryKey, "success");
+    } catch (error) {
+      setQueryStatus(queryKey, "error");
+    }
+  };
+  reactExports.useEffect(() => {
+    fetchData();
+  }, []);
+  const refetch = () => fetchData(true);
+  return {
+    data: getQueryData(queryKey),
+    status: getQueryStatus(queryKey),
+    fetchData,
+    refetch
+  };
+}
+const titleText = css`
+  color: white;
+`;
+const HeaderWrapper = newStyled.header`
   width: 100%;
   padding: 16px 24px;
   display: flex;
@@ -8932,10 +9457,10 @@ const headerStyle = css`
   background-color: #000;
   color: white;
 `;
-const shoppingBagStyle = css`
+const ShoppingBagWrapper = newStyled.div`
   position: relative;
 `;
-const shoppingBagCountStyle = css`
+const ShoppingBagCount = newStyled.span`
   width: 20px;
   height: 20px;
   display: flex;
@@ -8948,31 +9473,593 @@ const shoppingBagCountStyle = css`
   border-radius: 50%;
   color: #000;
 `;
-const AddCart = (props) => {
-  return /* @__PURE__ */ jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", ...props, children: [
-    /* @__PURE__ */ jsx$1("g", { clipPath: "url(#clip0_1275_11824)", children: /* @__PURE__ */ jsx$1(
-      "path",
-      {
-        d: "M7.33073 6.00033H8.66406V4.00033H10.6641V2.66699H8.66406V0.666992H7.33073V2.66699H5.33073V4.00033H7.33073V6.00033ZM4.66406 12.0003C3.93073 12.0003 3.3374 12.6003 3.3374 13.3337C3.3374 14.067 3.93073 14.667 4.66406 14.667C5.3974 14.667 5.9974 14.067 5.9974 13.3337C5.9974 12.6003 5.3974 12.0003 4.66406 12.0003ZM11.3307 12.0003C10.5974 12.0003 10.0041 12.6003 10.0041 13.3337C10.0041 14.067 10.5974 14.667 11.3307 14.667C12.0641 14.667 12.6641 14.067 12.6641 13.3337C12.6641 12.6003 12.0641 12.0003 11.3307 12.0003ZM4.7774 9.83366L4.7974 9.75366L5.3974 8.66699H10.3641C10.8641 8.66699 11.3041 8.39366 11.5307 7.98033L14.1041 3.30699L12.9441 2.66699H12.9374L12.2041 4.00033L10.3641 7.33366H5.68406L5.5974 7.15366L4.10406 4.00033L3.47073 2.66699L2.84406 1.33366H0.664062V2.66699H1.9974L4.3974 7.72699L3.4974 9.36033C3.39073 9.54699 3.33073 9.76699 3.33073 10.0003C3.33073 10.7337 3.93073 11.3337 4.66406 11.3337H12.6641V10.0003H4.94406C4.8574 10.0003 4.7774 9.92699 4.7774 9.83366Z",
-        fill: "white"
-      }
-    ) }),
-    /* @__PURE__ */ jsx$1("defs", { children: /* @__PURE__ */ jsx$1("clipPath", { id: "clip0_1275_11824", children: /* @__PURE__ */ jsx$1("rect", { width: "16", height: "16", fill: "white" }) }) })
+const ButtonWrapper$1 = newStyled.div`
+  display: flex;
+  justify-content: flex-end;
+`;
+const soldOutText = css`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+const buttonWrapper = css`
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  width: 100%;
+`;
+function ProductCard({
+  product,
+  handleIncreaseCartItem,
+  handleDecreaseCartItem,
+  cartItem
+}) {
+  const isSoldOut = product.stock === 0;
+  return /* @__PURE__ */ jsxs(Card, { children: [
+    /* @__PURE__ */ jsxs(Card.Preview, { children: [
+      /* @__PURE__ */ jsx$1(
+        "img",
+        {
+          src: product.imageUrl ?? DEFAULT_IMAGE_URL,
+          onError: (e2) => {
+            e2.target.src = DEFAULT_IMAGE_URL;
+          },
+          alt: product.name
+        }
+      ),
+      isSoldOut && /* @__PURE__ */ jsx$1(Text, { variant: "title-1", css: soldOutText, children: "품절" })
+    ] }),
+    /* @__PURE__ */ jsxs(Card.Content, { children: [
+      /* @__PURE__ */ jsxs("div", { children: [
+        /* @__PURE__ */ jsx$1(Text, { variant: "title-2", children: product.name }),
+        /* @__PURE__ */ jsx$1(Spacing, { size: 8 }),
+        /* @__PURE__ */ jsxs(Text, { children: [
+          product.price.toLocaleString(),
+          "원"
+        ] })
+      ] }),
+      /* @__PURE__ */ jsx$1(Spacing, { size: 24 }),
+      /* @__PURE__ */ jsx$1(ButtonWrapper$1, { children: cartItem ? /* @__PURE__ */ jsx$1("div", { css: buttonWrapper, children: /* @__PURE__ */ jsx$1(
+        PlusMinusButton,
+        {
+          quantity: cartItem.quantity,
+          onAddButtonClick: () => handleIncreaseCartItem(product.id),
+          onMinusButtonClick: () => handleDecreaseCartItem(product.id)
+        }
+      ) }) : /* @__PURE__ */ jsxs(
+        Button,
+        {
+          onClick: () => {
+            handleIncreaseCartItem(product.id);
+          },
+          children: [
+            /* @__PURE__ */ jsx$1(AddCartIcon, {}),
+            /* @__PURE__ */ jsx$1(Text, { color: "#fff", children: "담기" })
+          ]
+        }
+      ) })
+    ] })
+  ] }, product.id);
+}
+const CartItemWrapper$1 = newStyled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-top: 1px solid #e5e5e5;
+  padding: 8px 0;
+  position: relative;
+`;
+const CartItemImageWrapper = newStyled.div`
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+`;
+const CartItemImage = newStyled.img`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+`;
+const CartItemInfoWrapper = newStyled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+`;
+const CartItemName = newStyled.div`
+  font-size: 16px;
+  font-weight: 600;
+`;
+const CartItemPrice = newStyled.div`
+  font-size: 16px;
+  font-weight: 600;
+`;
+newStyled.div`
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+newStyled.button`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+`;
+newStyled.div`
+  width: 16px;
+  height: 16px;
+`;
+newStyled.button`
+  position: absolute;
+  right: 0;
+  top: 0;
+`;
+function CartItem({ cartItem, refetchCartItems }) {
+  const {
+    product: { imageUrl, price, name },
+    quantity
+  } = cartItem;
+  const handleDecreaseCartItem = async () => {
+    await CartItemApi.patchCartItems({ cartItemId: cartItem.id, quantity: quantity - 1 });
+    await refetchCartItems();
+  };
+  const handleIncreaseCartItem = async () => {
+    await CartItemApi.patchCartItems({ cartItemId: cartItem.id, quantity: quantity + 1 });
+    await refetchCartItems();
+  };
+  const handleDeleteCartItem = async () => {
+    await CartItemApi.deleteCartItems({ cartItemId: cartItem.id });
+    await refetchCartItems();
+  };
+  return /* @__PURE__ */ jsxs(CartItemWrapper$1, { children: [
+    /* @__PURE__ */ jsx$1(CartItemImageWrapper, { children: /* @__PURE__ */ jsx$1(CartItemImage, { src: imageUrl, alt: name }) }),
+    /* @__PURE__ */ jsxs(CartItemInfoWrapper, { children: [
+      /* @__PURE__ */ jsx$1(CartItemName, { children: name }),
+      /* @__PURE__ */ jsxs(CartItemPrice, { children: [
+        price.toLocaleString(),
+        "원"
+      ] }),
+      /* @__PURE__ */ jsx$1(
+        PlusMinusButton,
+        {
+          quantity,
+          onAddButtonClick: handleIncreaseCartItem,
+          onMinusButtonClick: handleDecreaseCartItem
+        }
+      ),
+      /* @__PURE__ */ jsx$1(
+        Button,
+        {
+          onClick: handleDeleteCartItem,
+          css: css`
+            position: absolute;
+            right: 0;
+            top: 8px;
+            background-color: #fff;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            padding: 4px 8px;
+          `,
+          children: "삭제"
+        }
+      )
+    ] })
   ] });
+}
+const TotalPriceWrapper = newStyled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`;
+const CartItemWrapper = newStyled.div`
+  display: flex;
+  flex-direction: column;
+  overflow-y: scroll;
+  height: 300px;
+`;
+const modalStyle = css`
+  max-width: 430px;
+`;
+function ShoppingCartModal() {
+  var _a;
+  const { data: cartItems, refetch: refetchCartItems } = useQuery({
+    queryFn: CartItemApi.getCartItems,
+    queryKey: "cartItems"
+  });
+  const totalPrice = ((_a = cartItems == null ? void 0 : cartItems.content) == null ? void 0 : _a.reduce((acc, item) => acc + item.product.price * item.quantity, 0)) ?? 0;
+  return /* @__PURE__ */ jsxs(Modal, { size: "large", position: "bottom", isBackdropClose: true, css: modalStyle, children: [
+    /* @__PURE__ */ jsx$1(Modal.Top, { children: /* @__PURE__ */ jsx$1(Modal.Title, { children: "장바구니" }) }),
+    /* @__PURE__ */ jsxs(Modal.Content, { children: [
+      /* @__PURE__ */ jsx$1(CartItemWrapper, { children: cartItems == null ? void 0 : cartItems.content.map((cartItem) => /* @__PURE__ */ jsx$1(CartItem, { cartItem, refetchCartItems }, cartItem.id)) }),
+      /* @__PURE__ */ jsxs(TotalPriceWrapper, { children: [
+        /* @__PURE__ */ jsx$1(Text, { variant: "title-2", children: "총 결제 금액" }),
+        /* @__PURE__ */ jsxs(Text, { variant: "title-1", children: [
+          totalPrice.toLocaleString(),
+          "원"
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsx$1(Modal.Bottom, { children: /* @__PURE__ */ jsx$1(Modal.ButtonContainer, { children: /* @__PURE__ */ jsx$1(
+      Modal.CancelButton,
+      {
+        css: css`
+              background-color: #333;
+              color: white;
+              width: 100%;
+              padding: 12px;
+              text-align: center;
+            `,
+        children: "닫기"
+      }
+    ) }) })
+  ] });
+}
+const modalSize = {
+  small: "320px",
+  medium: "480px",
+  large: "600px"
 };
-const TopArrow = (props) => {
-  return /* @__PURE__ */ jsx$1("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", ...props, children: /* @__PURE__ */ jsx$1(
-    "path",
-    {
-      d: "M12.1789 9.5504L8.35899 5.73047L4.53906 9.5504",
-      stroke: "#ACACAC",
-      strokeWidth: "1.32867",
-      strokeLinecap: "round",
-      strokeLinejoin: "round"
+const getModalWidth = (size, position2, device) => {
+  if (device === "mobile" || device === "tablet") {
+    return "90%";
+  }
+  if (position2 === "center") {
+    return modalSize[size];
+  } else {
+    return "100%";
+  }
+};
+const ModalContainer = newStyled.div`
+  width: ${(props) => getModalWidth(props.size ?? "medium", props.position ?? "center", props.device)};
+  box-sizing: border-box;
+  height: fit-content;
+
+  background-color: white;
+  padding: 24px 32px;
+
+  border-radius: ${(props) => props.position === "center" ? "8px" : "8px 8px 0 0"};
+
+  position: fixed;
+
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+
+  top: ${(props) => props.position === "center" ? "50%" : "auto"};
+  transform: ${(props) => props.position === "center" ? "translateY(-50%)" : "translateY(0)"};
+
+  bottom: 0;
+
+  z-index: ${(props) => props.zIndex};
+`;
+const ModalTop = newStyled.div`
+  display: flex;
+`;
+const ModalContent = newStyled.div`
+  padding-top: 24px;
+  padding-bottom: 24px;
+`;
+const ButtonContainer$1 = newStyled.div`
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  justify-content: flex-end;
+  width: 100%;
+`;
+const ModalBottom = newStyled.div`
+  display: flex;
+`;
+const Title$1 = newStyled.div`
+  font-size: 18px;
+  font-weight: 700;
+
+  flex: 1;
+`;
+const ModalBackdrop = newStyled.div`
+  background-color: #000;
+  opacity: 0.35;
+
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+
+  z-index: ${(props) => props.zIndex};
+`;
+const TransparentButton = newStyled.button`
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+`;
+const DEVICE_WIDTHS = {
+  mobile: 768,
+  tablet: 1024,
+  desktop: 1280
+};
+function useDevice() {
+  const [device, setDevice] = reactExports.useState("desktop");
+  reactExports.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < DEVICE_WIDTHS.mobile)
+        setDevice("mobile");
+      else if (window.innerWidth >= DEVICE_WIDTHS.mobile && window.innerWidth < DEVICE_WIDTHS.tablet)
+        setDevice("tablet");
+      else
+        setDevice("desktop");
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  return device;
+}
+function useAutoFocus(isOpen) {
+  const modalRef = reactExports.useRef(null);
+  reactExports.useEffect(() => {
+    if (!isOpen)
+      return;
+    const modalEl = modalRef.current;
+    if (!modalEl)
+      return;
+    const focusableEls = modalEl == null ? void 0 : modalEl.querySelectorAll(
+      'button, a[href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstEl = focusableEls == null ? void 0 : focusableEls[0];
+    const lastEl = focusableEls == null ? void 0 : focusableEls[focusableEls.length - 1];
+    const handleKeyDown = (e2) => {
+      if (e2.key !== "Tab" || (focusableEls == null ? void 0 : focusableEls.length) === 0)
+        return;
+      if (e2.shiftKey) {
+        if (document.activeElement === firstEl) {
+          e2.preventDefault();
+          lastEl == null ? void 0 : lastEl.focus();
+        }
+      } else {
+        if (document.activeElement === lastEl) {
+          e2.preventDefault();
+          firstEl == null ? void 0 : firstEl.focus();
+        }
+      }
+    };
+    firstEl == null ? void 0 : firstEl.focus();
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+  return { modalRef };
+}
+const ModalContext = reactExports.createContext({
+  isOpen: false,
+  close: () => {
+  },
+  open: () => {
+  }
+});
+function Wrapper({
+  children,
+  initialOpen = false,
+  isOpen: controlledIsOpen,
+  onClose,
+  onOpen
+}) {
+  const isControlled = controlledIsOpen !== void 0;
+  const [uncontrolledOpen, setUncontrolledOpen] = reactExports.useState(initialOpen);
+  const isOpen = isControlled ? controlledIsOpen : uncontrolledOpen;
+  const close = isControlled ? onClose ?? (() => {
+  }) : () => setUncontrolledOpen(false);
+  const open = isControlled ? onOpen ?? (() => {
+  }) : () => setUncontrolledOpen(true);
+  reactExports.useEffect(() => {
+    if (!isOpen)
+      return;
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape")
+        close();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, close]);
+  reactExports.useEffect(() => {
+    if (isOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
     }
+  }, [isOpen]);
+  return /* @__PURE__ */ jsx$1(ModalContext.Provider, { value: { isOpen, close, open }, children });
+}
+Wrapper.displayName = "ModalWrapper";
+function ModalMain({
+  children,
+  position: position2 = "center",
+  zIndex = 10,
+  backdropZIndex = 9,
+  size = "medium",
+  isBackdropClose = false,
+  ...props
+}) {
+  const { isOpen, close } = reactExports.useContext(ModalContext);
+  const device = useDevice();
+  const { modalRef } = useAutoFocus(isOpen);
+  return /* @__PURE__ */ jsx$1(Fragment, { children: isOpen && reactDomExports.createPortal(
+    /* @__PURE__ */ jsxs(Fragment, { children: [
+      /* @__PURE__ */ jsx$1(ModalContainer, { position: position2, zIndex, size, ref: modalRef, device, ...props, children }),
+      /* @__PURE__ */ jsx$1(ModalBackdrop, { onClick: isBackdropClose ? close : void 0, zIndex: backdropZIndex })
+    ] }),
+    document.body
   ) });
-};
-const Select = ({ options, selectedItem, setSelectedItem }) => {
+}
+ModalMain.displayName = "ModalMain";
+function Trigger({ children }) {
+  const { open } = reactExports.useContext(ModalContext);
+  return /* @__PURE__ */ jsx$1(TransparentButton, { onClick: open, children });
+}
+Trigger.displayName = "ModalTrigger";
+function Top({ children }) {
+  return /* @__PURE__ */ jsx$1(ModalTop, { children });
+}
+Top.displayName = "ModalTop";
+function Title({ children }) {
+  return /* @__PURE__ */ jsx$1(Title$1, { children });
+}
+Title.displayName = "ModalTitle";
+function Close({ children, ...props }) {
+  const { close } = reactExports.useContext(ModalContext);
+  const handleCloseButtonClick = (event) => {
+    var _a;
+    event.stopPropagation();
+    (_a = props.onClick) == null ? void 0 : _a.call(props, event);
+    close();
+  };
+  return /* @__PURE__ */ jsx$1(TransparentButton, { onClick: handleCloseButtonClick, ...props, children });
+}
+Close.displayName = "ModalClose";
+function Content({ children }) {
+  return /* @__PURE__ */ jsx$1(ModalContent, { children });
+}
+Content.displayName = "ModalContent";
+function Bottom({ children }) {
+  return /* @__PURE__ */ jsx$1(ModalBottom, { children });
+}
+Bottom.displayName = "ModalBottom";
+function ButtonContainer({ children }) {
+  return /* @__PURE__ */ jsx$1(ButtonContainer$1, { children });
+}
+ButtonContainer.displayName = "ModalButtonContainer";
+function CancelButton({ children, ...props }) {
+  const { close } = reactExports.useContext(ModalContext);
+  return /* @__PURE__ */ jsx$1(Button, { onClick: close, ...props, children });
+}
+CancelButton.displayName = "ModalCancelButton";
+function ConfirmButton({ ...props }) {
+  const { close } = reactExports.useContext(ModalContext);
+  const handleConfirmButtonClick = (event) => {
+    var _a;
+    (_a = props.onClick) == null ? void 0 : _a.call(props, event);
+    close();
+  };
+  return /* @__PURE__ */ jsx$1(Button, { onClick: handleConfirmButtonClick, ...props });
+}
+ConfirmButton.displayName = "ModalConfirmButton";
+const Modal = Object.assign(ModalMain, {
+  Wrapper,
+  Top,
+  Title,
+  Close,
+  Trigger,
+  CloseIcon,
+  Content,
+  Bottom,
+  CancelButton,
+  ConfirmButton,
+  ButtonContainer
+});
+const Text$1 = newStyled.p`
+  font-style: normal;
+  line-height: normal;
+  color: ${({ color }) => color};
+  ${({ variant }) => {
+  switch (variant) {
+    case "title-1":
+      return `font-size: 24px; font-weight: 700;`;
+    case "title-2":
+      return `font-size: 14px; font-weight: 700;`;
+    case "title-3":
+      return `font-size: 12px; font-weight: 700;`;
+    case "body-0":
+      return `font-size: 24px; font-weight: 300;`;
+    case "body-1":
+      return `font-size: 14px; font-weight: 300;`;
+    case "body-2":
+      return `font-size: 12px; font-weight: 300;`;
+    case "body-3":
+      return `font-size: 10px; font-weight: 300;`;
+    default:
+      return "";
+  }
+}}
+`;
+function Text({ variant = "body-2", color = "#000", children, ...props }) {
+  return /* @__PURE__ */ jsx$1(Text$1, { variant, color, ...props, children });
+}
+function Header() {
+  var _a;
+  const { data: cartItems } = useQuery({
+    queryFn: CartItemApi.getCartItems,
+    queryKey: "cartItems"
+  });
+  const shoppingCount = ((_a = cartItems == null ? void 0 : cartItems.content) == null ? void 0 : _a.length) ?? 0;
+  return /* @__PURE__ */ jsxs(HeaderWrapper, { children: [
+    /* @__PURE__ */ jsx$1(Text, { variant: "title-1", css: titleText, children: "SHOP" }),
+    /* @__PURE__ */ jsxs(Modal.Wrapper, { children: [
+      /* @__PURE__ */ jsx$1(Modal.Trigger, { children: /* @__PURE__ */ jsxs(ShoppingBagWrapper, { children: [
+        /* @__PURE__ */ jsx$1(ShoppingBagIcon, {}),
+        shoppingCount !== 0 && /* @__PURE__ */ jsx$1(ShoppingBagCount, { children: shoppingCount })
+      ] }) }),
+      /* @__PURE__ */ jsx$1(ShoppingCartModal, {})
+    ] })
+  ] });
+}
+const SelectWrapper$1 = newStyled.div`
+  position: relative;
+  width: 100%;
+  font-size: 10.629px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 14.615px;
+`;
+const Label = newStyled.label`
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  width: 100%;
+  border: solid 1.01px ${({ isOpen }) => isOpen ? "#000000" : "#acacac"};
+  border-radius: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+  cursor: pointer;
+  color: #000000;
+  font-size: 10.629px;
+`;
+const OptionList = newStyled.ul`
+  position: absolute;
+  width: 100%;
+  top: 40px;
+  left: 0;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 5.315px;
+  border: 1px solid #acacac;
+  background: #fff;
+  z-index: 10;
+  box-sizing: border-box;
+`;
+const OptionItem = newStyled.li`
+  color: #4f4f4f;
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: 5.315px;
+
+  &:hover {
+    background: #e9e9e9;
+  }
+`;
+function Select({ options, selectedItem, setSelectedItem }) {
   const [isOpen, setIsOpen] = reactExports.useState(false);
   const selectRef = reactExports.useRef(null);
   const handleSelect = (item) => {
@@ -8988,110 +10075,21 @@ const Select = ({ options, selectedItem, setSelectedItem }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  return /* @__PURE__ */ jsxs("div", { css: selectStyle, ref: selectRef, children: [
-    /* @__PURE__ */ jsxs("button", { type: "button", css: labelStyle(isOpen), onClick: () => setIsOpen((prev2) => !prev2), children: [
+  return /* @__PURE__ */ jsxs(SelectWrapper$1, { ref: selectRef, children: [
+    /* @__PURE__ */ jsxs(Label, { isOpen, onClick: () => setIsOpen((prev2) => !prev2), children: [
       selectedItem,
-      isOpen ? /* @__PURE__ */ jsx$1(TopArrow, { style: { transform: "rotate(180deg)" } }) : /* @__PURE__ */ jsx$1(TopArrow, {})
+      isOpen ? /* @__PURE__ */ jsx$1(TopArrowIcon, { style: { transform: "rotate(180deg)" } }) : /* @__PURE__ */ jsx$1(TopArrowIcon, {})
     ] }),
-    isOpen && /* @__PURE__ */ jsx$1("ul", { css: optionListStyle, children: options.map((option, idx) => /* @__PURE__ */ jsx$1("li", { css: optionItemStyle, onClick: () => handleSelect(option), children: option }, idx)) })
+    isOpen && /* @__PURE__ */ jsx$1(OptionList, { children: options.map((option, idx) => /* @__PURE__ */ jsx$1(OptionItem, { onClick: () => handleSelect(option), children: option }, idx)) })
   ] });
-};
-const selectStyle = css`
-  position: relative;
-  width: 100%;
-  font-size: 10.629px;
-  font-style: normal;
-  font-weight: 400;
-  line-height: 14.615px;
+}
+const Spacing$1 = newStyled.div`
+  height: ${({ size }) => size}px;
 `;
-const labelStyle = (isOpen) => css`
-  min-height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: transparent;
-  width: 100%;
-  border: solid 1.01px ${isOpen ? "#000000" : "#acacac"};
-  border-radius: 8px;
-  padding: 8px;
-  box-sizing: border-box;
-  cursor: pointer;
-  color: #000000;
-  font-size: 10.629px;
-`;
-const optionListStyle = css`
-  position: absolute;
-  width: 100%;
-  top: 40px;
-  left: 0;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  border-radius: 5.315px;
-  border: 1px solid #acacac;
-  background: #fff;
-  z-index: 10;
-  box-sizing: border-box;
-`;
-const optionItemStyle = css`
-  color: #4f4f4f;
-  padding: 8px 10px;
-  cursor: pointer;
-  border-radius: 5.315px;
-
-  &:hover {
-    background: #e9e9e9;
-  }
-`;
-const Text = ({ variant, color = "#000", children }) => {
-  return /* @__PURE__ */ jsx$1("span", { css: textStyle(variant, color), children });
-};
-const textStyle = (variant, color) => {
-  return css`
-    font-style: normal;
-    line-height: normal;
-
-    ${selectVariant(variant)}
-    color: ${color};
-  `;
-};
-const selectVariant = (variant) => {
-  switch (variant) {
-    case "title-1":
-      return css`
-        font-size: 24px;
-        font-weight: 700;
-      `;
-    case "title-2":
-      return css`
-        font-size: 14px;
-        font-weight: 700;
-      `;
-    case "body-1":
-      return css`
-        font-size: 14px;
-        font-weight: 500;
-      `;
-    case "body-2":
-      return css`
-        font-size: 12px;
-        font-weight: 500;
-      `;
-  }
-};
-const RemoveCart = (props) => {
-  return /* @__PURE__ */ jsxs("svg", { xmlns: "http://www.w3.org/2000/svg", width: "16", height: "16", viewBox: "0 0 16 16", fill: "none", ...props, children: [
-    /* @__PURE__ */ jsx$1("g", { clipPath: "url(#clip0_1275_13681)", children: /* @__PURE__ */ jsx$1(
-      "path",
-      {
-        d: "M15.1533 15.1533L1.84667 1.84668L1.33333 1.33335L0.846667 0.84668L0 1.69335L2.92667 4.62001L4.4 7.72668L3.5 9.36001C3.39333 9.54668 3.33333 9.76668 3.33333 10C3.33333 10.7333 3.93333 11.3333 4.66667 11.3333H9.64L10.56 12.2533C10.2267 12.4933 10.0067 12.8867 10.0067 13.3333C10.0067 14.0667 10.6 14.6667 11.3333 14.6667C11.78 14.6667 12.1733 14.4467 12.4133 14.1067L14.3067 16L15.1533 15.1533ZM4.94667 10C4.85333 10 4.78 9.92668 4.78 9.83335L4.8 9.75335L5.4 8.66668H6.97333L8.30667 10H4.94667ZM10.3667 8.66668C10.8667 8.66668 11.3067 8.39335 11.5333 7.98001L13.92 3.65335C13.9733 3.56001 14 3.44668 14 3.33335C14 2.96668 13.7 2.66668 13.3333 2.66668H4.36L10.3667 8.66668ZM4.66667 12C3.93333 12 3.34 12.6 3.34 13.3333C3.34 14.0667 3.93333 14.6667 4.66667 14.6667C5.4 14.6667 6 14.0667 6 13.3333C6 12.6 5.4 12 4.66667 12Z",
-        fill: "black"
-      }
-    ) }),
-    /* @__PURE__ */ jsx$1("defs", { children: /* @__PURE__ */ jsx$1("clipPath", { id: "clip0_1275_13681", children: /* @__PURE__ */ jsx$1("rect", { width: "16", height: "16", fill: "white" }) }) })
-  ] });
-};
-const Spinner = () => {
+function Spacing({ size }) {
+  return /* @__PURE__ */ jsx$1(Spacing$1, { size });
+}
+function Spinner() {
   return /* @__PURE__ */ jsx$1("div", { css: [spinnerWrapper, orbitSpin], className: "active", children: /* @__PURE__ */ jsxs("div", { css: orbitSpinner, children: [
     /* @__PURE__ */ jsx$1("div", { css: planet }),
     /* @__PURE__ */ jsxs("div", { css: orbit, children: [
@@ -9099,7 +10097,7 @@ const Spinner = () => {
       /* @__PURE__ */ jsx$1("div", { css: [satellite, satellite2] })
     ] })
   ] }) });
-};
+}
 const spinnerWrapper = css`
   background-color: rgba(0, 0, 0, 0.7);
   width: 100vw;
@@ -9168,227 +10166,49 @@ const orbitSpin = css`
     }
   }
 `;
-const ErrorPopup = ({
-  errorMessage,
-  setErrorMessage
-}) => {
-  reactExports.useEffect(() => {
-    setTimeout(() => {
-      setErrorMessage("");
-    }, 3e3);
-  }, [setErrorMessage]);
-  return /* @__PURE__ */ jsx$1("div", { css: errorPopupStyle, children: /* @__PURE__ */ jsx$1(Text, { variant: "body-2", children: errorMessage }) });
-};
-const errorPopupStyle = css`
-  position: absolute;
-  top: 64px;
-  left: 0;
-  width: 100%;
-  text-align: center;
-  color: #000;
-  background-color: #ffc9c9;
-  padding: 12px 0;
+const ButtonWrapper = newStyled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
 `;
-const getProducts = async ({ page, size, sort = "asc" }) => {
-  const response = await fetch(`${"http://techcourse-lv2-alb-974870821.ap-northeast-2.elb.amazonaws.com"}/products?page=${page}&size=${size}&sort=${sort}`);
-  if (!response.ok) {
-    throw new Error("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-  }
-  const data = await response.json();
-  return data;
-};
-const useProducts = () => {
-  const [products, setProducts] = reactExports.useState();
-  const [isProductsLoading, setIsProductsLoading] = reactExports.useState(true);
-  const [productsErrorMessage, setProductsErrorMessage] = reactExports.useState("");
-  const getProduct = async () => {
-    try {
-      const data = await getProducts({ page: 0, size: 20 });
-      setProducts(data.content);
-    } catch (e2) {
-      if (e2 instanceof Error)
-        setProductsErrorMessage(e2.message);
-    }
-  };
-  reactExports.useEffect(() => {
-    getProduct().then(() => {
-      setIsProductsLoading(false);
-    });
-  }, []);
-  return {
-    products,
-    isProductsLoading,
-    productsErrorMessage,
-    setProductsErrorMessage
-  };
-};
-const getCartItems = async ({ page, size, sort = "asc" }) => {
-  const response = await fetch(`${"http://techcourse-lv2-alb-974870821.ap-northeast-2.elb.amazonaws.com"}/cart-items?page=${page}&size=${size}&sort=${sort}`, {
-    headers: {
-      Authorization: `Basic ${"Z3Vlc3VuZzpwYXNzd29yZA=="}`
-    }
-  });
-  if (!response.ok) {
-    throw new Error("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-  }
-  const data = await response.json();
-  return data;
-};
-const postCartItems = async ({ productId, quantity }) => {
-  const response = await fetch(`${"http://techcourse-lv2-alb-974870821.ap-northeast-2.elb.amazonaws.com"}/cart-items`, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${"Z3Vlc3VuZzpwYXNzd29yZA=="}`,
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      productId,
-      quantity
-    })
-  });
-  if (!response.ok) {
-    throw new Error("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-  }
-};
-const deleteCartItems = async ({ productId }) => {
-  const response = await fetch(`${"http://techcourse-lv2-alb-974870821.ap-northeast-2.elb.amazonaws.com"}/cart-items/${productId}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Basic ${"Z3Vlc3VuZzpwYXNzd29yZA=="}`,
-      "Content-Type": "application/json"
-    }
-  });
-  if (!response.ok) {
-    throw new Error("오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
-  }
-};
-const useCartItems = () => {
-  const [cartItems, setCartItems] = reactExports.useState();
-  const [isCartItemsLoading, setIsProductsLoading] = reactExports.useState(true);
-  const [cartItemsErrorMessage, setCartItemsErrorMessage] = reactExports.useState("");
-  const getCartItem = async () => {
-    try {
-      const data = await getCartItems({ page: 0, size: 20 });
-      setCartItems(data);
-    } catch (e2) {
-      if (e2 instanceof Error)
-        setCartItemsErrorMessage(e2.message);
-    }
-  };
-  const addCart = async (id2) => {
-    try {
-      await postCartItems({ quantity: 1, productId: id2 });
-      await getCartItem();
-    } catch (e2) {
-      if (e2 instanceof Error)
-        setCartItemsErrorMessage(e2.message);
-    }
-  };
-  const removeCart = async (id2) => {
-    try {
-      await deleteCartItems({ productId: id2 });
-      await getCartItem();
-    } catch (e2) {
-      if (e2 instanceof Error)
-        setCartItemsErrorMessage(e2.message);
-    }
-  };
-  reactExports.useEffect(() => {
-    getCartItem().then(() => {
-      setIsProductsLoading(false);
-    });
-  }, []);
-  const cartItemIds = cartItems && Object.fromEntries(cartItems == null ? void 0 : cartItems.content.map((item) => [item.product.id, item.id]));
-  return {
-    cartItems,
-    isCartItemsLoading,
-    cartItemsErrorMessage,
-    setCartItemsErrorMessage,
-    addCart,
-    removeCart,
-    cartItemIds
-  };
-};
-function App() {
-  var _a, _b, _c;
-  const [filter, setFilter] = reactExports.useState("전체");
-  const [sort, setSort] = reactExports.useState("높은 가격순");
-  const { products, isProductsLoading, productsErrorMessage, setProductsErrorMessage } = useProducts();
-  const {
-    cartItems,
-    isCartItemsLoading,
-    cartItemsErrorMessage,
-    setCartItemsErrorMessage,
-    addCart,
-    removeCart,
-    cartItemIds
-  } = useCartItems();
-  if (isProductsLoading || isCartItemsLoading)
-    return /* @__PURE__ */ jsx$1(Spinner, {});
-  return /* @__PURE__ */ jsxs("div", { css: appStyle, children: [
-    productsErrorMessage && /* @__PURE__ */ jsx$1(ErrorPopup, { errorMessage: productsErrorMessage, setErrorMessage: setProductsErrorMessage }),
-    cartItemsErrorMessage && /* @__PURE__ */ jsx$1(ErrorPopup, { errorMessage: cartItemsErrorMessage, setErrorMessage: setCartItemsErrorMessage }),
-    /* @__PURE__ */ jsx$1(Header, { shoppingCount: (_a = cartItems == null ? void 0 : cartItems.content) == null ? void 0 : _a.length }),
-    /* @__PURE__ */ jsxs("div", { css: containerStyle, children: [
-      /* @__PURE__ */ jsx$1(Text, { variant: "title-1", children: "bpple 상품 목록" }),
-      /* @__PURE__ */ jsxs("div", { css: selectBoxStyle, children: [
-        /* @__PURE__ */ jsx$1(Select, { options: ["전체", "식료품", "패션잡화"], selectedItem: filter, setSelectedItem: setFilter }),
-        /* @__PURE__ */ jsx$1(Select, { options: ["높은 가격순", "낮은 가격순"], selectedItem: sort, setSelectedItem: setSort })
-      ] }),
-      /* @__PURE__ */ jsx$1("div", { css: cardContainerStyle, children: (_c = (_b = products == null ? void 0 : products.filter((product) => filter === "전체" ? true : product.category === filter)) == null ? void 0 : _b.sort(
-        (productA, productB) => sort === "낮은 가격순" ? productA.price - productB.price : productB.price - productA.price
-      )) == null ? void 0 : _c.map((product) => /* @__PURE__ */ jsxs(Card, { children: [
-        /* @__PURE__ */ jsx$1(Card.Preview, { children: /* @__PURE__ */ jsx$1(
-          "img",
-          {
-            src: product.imageUrl,
-            onError: (e2) => {
-              e2.target.src = "https://www.next-t.co.kr/public/uploads/7b7f7e2138e29e598cd0cdf2c85ea08d.jpg";
-            },
-            alt: product.name
-          }
-        ) }),
-        /* @__PURE__ */ jsxs(Card.Content, { style: { display: "flex", flexDirection: "column", gap: "27px" }, children: [
-          /* @__PURE__ */ jsxs("div", { style: { display: "flex", flexDirection: "column", gap: "8px" }, children: [
-            /* @__PURE__ */ jsx$1(Text, { variant: "title-2", children: product.name }),
-            /* @__PURE__ */ jsxs(Text, { variant: "body-2", children: [
-              product.price.toLocaleString(),
-              "원"
-            ] })
-          ] }),
-          /* @__PURE__ */ jsx$1("div", { style: { display: "flex", justifyContent: "flex-end" }, children: cartItemIds && cartItemIds[product.id] ? /* @__PURE__ */ jsxs(Button, { backgroundColor: "#fff", onClick: () => removeCart(cartItemIds[product.id]), children: [
-            /* @__PURE__ */ jsx$1(RemoveCart, {}),
-            /* @__PURE__ */ jsx$1(Text, { variant: "body-2", children: "빼기" })
-          ] }) : /* @__PURE__ */ jsxs(Button, { onClick: () => addCart(product.id), children: [
-            /* @__PURE__ */ jsx$1(AddCart, {}),
-            /* @__PURE__ */ jsx$1(Text, { variant: "body-2", color: "#fff", children: "담기" })
-          ] }) })
-        ] })
-      ] }, product.id)) })
-    ] })
+const controlButton = css`
+  padding: 0;
+  border-radius: 8px;
+  border: 1.5px solid #e5e5e5;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+const controlButtonText = css`
+  width: 100%;
+  font-size: 24px;
+  color: #222;
+  text-align: center;
+`;
+function PlusMinusButton({ onAddButtonClick, onMinusButtonClick, quantity }) {
+  return /* @__PURE__ */ jsxs(ButtonWrapper, { children: [
+    /* @__PURE__ */ jsx$1(Button, { css: controlButton, onClick: onMinusButtonClick, children: /* @__PURE__ */ jsx$1(Text, { css: controlButtonText, variant: "body-0", children: "-" }) }),
+    /* @__PURE__ */ jsx$1(Text, { variant: "body-2", children: quantity }),
+    /* @__PURE__ */ jsx$1(Button, { css: controlButton, onClick: onAddButtonClick, children: /* @__PURE__ */ jsx$1(Text, { css: controlButtonText, variant: "body-0", children: "+" }) })
   ] });
 }
-const appStyle = css`
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  max-width: 430px;
-  margin: 0 auto;
-  background-color: #fff;
-`;
-const containerStyle = css`
+const ProductPageWrapper = newStyled.div`
   padding: 36px 24px;
   display: flex;
   height: calc(100% - 64px);
   flex-direction: column;
   gap: 28px;
 `;
-const selectBoxStyle = css`
+const SelectWrapper = newStyled.div`
   display: flex;
   justify-content: space-between;
   gap: 132px;
 `;
-const cardContainerStyle = css`
+const CardWrapper = newStyled.div`
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
@@ -9396,6 +10216,102 @@ const cardContainerStyle = css`
   justify-items: center;
   overflow-y: scroll;
 `;
-client.createRoot(document.getElementById("root")).render(
-  /* @__PURE__ */ jsx$1(React.StrictMode, { children: /* @__PURE__ */ jsx$1(App, {}) })
-);
+const DEFAULT_SORT = "높은 가격순";
+const DEFAULT_FILTER = "전체";
+const CATEGORY = ["전체", "식료품", "패션잡화"];
+const SORT = ["높은 가격순", "낮은 가격순"];
+function useCartItemsQuery() {
+  return useQuery({
+    queryKey: "cartItems",
+    queryFn: CartItemApi.getCartItems
+  });
+}
+function ProductsPage() {
+  const [filter, setFilter] = reactExports.useState(DEFAULT_FILTER);
+  const [sort, setSort] = reactExports.useState(DEFAULT_SORT);
+  const { showError } = useError();
+  const { data: products, status: productsStatus } = useQuery({
+    queryFn: ProductApi.getAllProducts,
+    queryKey: "products"
+  });
+  const { data: cartItems, status: cartItemsStatus, refetch: refetchCartItems } = useCartItemsQuery();
+  const increaseCartItem = async (productId) => {
+    const cartItem = cartItems == null ? void 0 : cartItems.content.find((item) => item.product.id === productId);
+    const product = products == null ? void 0 : products.content.find((item) => item.id === productId);
+    if (!product)
+      return;
+    const stock = product.stock;
+    if (stock < ((cartItem == null ? void 0 : cartItem.quantity) ?? 0) + 1) {
+      showError("재고가 부족합니다.");
+      return;
+    }
+    if (!cartItem) {
+      await CartItemApi.postCartItems({ productId });
+    } else {
+      await CartItemApi.patchCartItems({
+        cartItemId: cartItem.id,
+        quantity: cartItem.quantity + 1
+      });
+    }
+    await refetchCartItems();
+  };
+  const decreaseCartItem = async (productId) => {
+    const cartItem = cartItems == null ? void 0 : cartItems.content.find((item) => item.product.id === productId);
+    if (!cartItem) {
+      await CartItemApi.postCartItems({ productId });
+    } else {
+      await CartItemApi.patchCartItems({
+        cartItemId: cartItem.id,
+        quantity: cartItem.quantity - 1
+      });
+    }
+    await refetchCartItems();
+  };
+  const isLoading = productsStatus === "loading" || cartItemsStatus === "loading";
+  if (isLoading && !cartItems)
+    return /* @__PURE__ */ jsx$1(Spinner, {});
+  return /* @__PURE__ */ jsxs(Fragment, { children: [
+    /* @__PURE__ */ jsx$1(Header, {}),
+    /* @__PURE__ */ jsxs(ProductPageWrapper, { children: [
+      /* @__PURE__ */ jsx$1(Text, { variant: "title-1", children: "피터네 상품 목록" }),
+      /* @__PURE__ */ jsxs(SelectWrapper, { children: [
+        /* @__PURE__ */ jsx$1(Select, { options: CATEGORY, selectedItem: filter, setSelectedItem: setFilter }),
+        /* @__PURE__ */ jsx$1(Select, { options: SORT, selectedItem: sort, setSelectedItem: setSort })
+      ] }),
+      /* @__PURE__ */ jsx$1(CardWrapper, { children: products == null ? void 0 : products.content.filter((product) => filter === "전체" || product.category === filter).sort(
+        (productA, productB) => sort === "낮은 가격순" ? productA.price - productB.price : productB.price - productA.price
+      ).map((product) => /* @__PURE__ */ jsx$1(
+        ProductCard,
+        {
+          product,
+          cartItem: cartItems.content.find((item) => item.product.id === product.id),
+          handleIncreaseCartItem: increaseCartItem,
+          handleDecreaseCartItem: decreaseCartItem
+        },
+        product.id
+      )) })
+    ] })
+  ] });
+}
+const Container = newStyled.div`
+  position: relative;
+  width: 100%;
+  height: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  background-color: #fff;
+`;
+function App() {
+  return /* @__PURE__ */ jsx$1(QueryProvider, { children: /* @__PURE__ */ jsx$1(Container, { children: /* @__PURE__ */ jsxs(ErrorProvider, { children: [
+    /* @__PURE__ */ jsx$1(ErrorPopup, {}),
+    /* @__PURE__ */ jsx$1(ProductsPage, {})
+  ] }) }) });
+}
+async function enableMocking() {
+  return;
+}
+enableMocking().then(() => {
+  client.createRoot(document.getElementById("root")).render(
+    /* @__PURE__ */ jsx$1(React.StrictMode, { children: /* @__PURE__ */ jsx$1(App, {}) })
+  );
+});
