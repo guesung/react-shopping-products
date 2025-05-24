@@ -64,6 +64,55 @@ function _mergeNamespaces(n2, m2) {
     fetch(link.href, fetchOpts);
   }
 })();
+const scriptRel = "modulepreload";
+const assetsURL = function(dep) {
+  return "/react-shopping-products/" + dep;
+};
+const seen = {};
+const __vitePreload = function preload(baseModule, deps, importerUrl) {
+  let promise = Promise.resolve();
+  if (deps && deps.length > 0) {
+    document.getElementsByTagName("link");
+    const cspNonceMeta = document.querySelector("meta[property=csp-nonce]");
+    const cspNonce = (cspNonceMeta == null ? void 0 : cspNonceMeta.nonce) || (cspNonceMeta == null ? void 0 : cspNonceMeta.getAttribute("nonce"));
+    promise = Promise.all(deps.map((dep) => {
+      dep = assetsURL(dep);
+      if (dep in seen)
+        return;
+      seen[dep] = true;
+      const isCss = dep.endsWith(".css");
+      const cssSelector = isCss ? '[rel="stylesheet"]' : "";
+      if (document.querySelector(`link[href="${dep}"]${cssSelector}`)) {
+        return;
+      }
+      const link = document.createElement("link");
+      link.rel = isCss ? "stylesheet" : scriptRel;
+      if (!isCss) {
+        link.as = "script";
+        link.crossOrigin = "";
+      }
+      link.href = dep;
+      if (cspNonce) {
+        link.setAttribute("nonce", cspNonce);
+      }
+      document.head.appendChild(link);
+      if (isCss) {
+        return new Promise((res, rej) => {
+          link.addEventListener("load", res);
+          link.addEventListener("error", () => rej(new Error(`Unable to preload CSS for ${dep}`)));
+        });
+      }
+    }));
+  }
+  return promise.then(() => baseModule()).catch((err) => {
+    const e2 = new Event("vite:preloadError", { cancelable: true });
+    e2.payload = err;
+    window.dispatchEvent(e2);
+    if (!e2.defaultPrevented) {
+      throw err;
+    }
+  });
+};
 function getDefaultExportFromCjs(x2) {
   return x2 && x2.__esModule && Object.prototype.hasOwnProperty.call(x2, "default") ? x2["default"] : x2;
 }
@@ -9418,6 +9467,16 @@ function QueryProvider({ children }) {
     }
   );
 }
+const queryPromises = /* @__PURE__ */ new Map();
+function getQueryPromise(queryKey) {
+  return queryPromises.get(queryKey);
+}
+function setQueryPromise(queryKey, promise) {
+  queryPromises.set(queryKey, promise);
+}
+function clearQueryPromise(queryKey) {
+  queryPromises.delete(queryKey);
+}
 function useQuery({ queryKey, queryFn }) {
   const { getQueryData, setQueryData, getQueryStatus, setQueryStatus } = useQueryClient();
   const fetchData = async (forceFetch = false) => {
@@ -9427,11 +9486,18 @@ function useQuery({ queryKey, queryFn }) {
         setQueryStatus(queryKey, "success");
         return;
       }
-      const response = await queryFn();
+      let promise = getQueryPromise(queryKey);
+      if (!promise || forceFetch) {
+        promise = queryFn();
+        setQueryPromise(queryKey, promise);
+      }
+      const response = await promise;
       setQueryData(queryKey, response);
       setQueryStatus(queryKey, "success");
+      clearQueryPromise(queryKey);
     } catch (error) {
       setQueryStatus(queryKey, "error");
+      clearQueryPromise(queryKey);
     }
   };
   reactExports.useEffect(() => {
@@ -9444,6 +9510,22 @@ function useQuery({ queryKey, queryFn }) {
     fetchData,
     refetch
   };
+}
+function useMutation({
+  mutationFn,
+  queryKey
+}) {
+  const { getQueryData, setQueryData } = useQueryClient();
+  const mutate = async (variables, optimisticUpdate) => {
+    const prevData = getQueryData(queryKey);
+    if (optimisticUpdate) {
+      mutationFn(variables);
+      setQueryData(queryKey, optimisticUpdate(prevData));
+    } else {
+      await mutationFn(variables);
+    }
+  };
+  return { mutate };
 }
 const titleText = css`
   color: white;
@@ -9782,28 +9864,6 @@ const TransparentButton = newStyled.button`
   border: none;
   cursor: pointer;
 `;
-const DEVICE_WIDTHS = {
-  mobile: 768,
-  tablet: 1024,
-  desktop: 1280
-};
-function useDevice() {
-  const [device, setDevice] = reactExports.useState("desktop");
-  reactExports.useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth < DEVICE_WIDTHS.mobile)
-        setDevice("mobile");
-      else if (window.innerWidth >= DEVICE_WIDTHS.mobile && window.innerWidth < DEVICE_WIDTHS.tablet)
-        setDevice("tablet");
-      else
-        setDevice("desktop");
-    };
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-  return device;
-}
 function useAutoFocus(isOpen) {
   const modalRef = reactExports.useRef(null);
   reactExports.useEffect(() => {
@@ -9837,6 +9897,28 @@ function useAutoFocus(isOpen) {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen]);
   return { modalRef };
+}
+const DEVICE_WIDTHS = {
+  mobile: 768,
+  tablet: 1024,
+  desktop: 1280
+};
+function useDevice() {
+  const [device, setDevice] = reactExports.useState("desktop");
+  reactExports.useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < DEVICE_WIDTHS.mobile)
+        setDevice("mobile");
+      else if (window.innerWidth >= DEVICE_WIDTHS.mobile && window.innerWidth < DEVICE_WIDTHS.tablet)
+        setDevice("tablet");
+      else
+        setDevice("desktop");
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+  return device;
 }
 const ModalContext = reactExports.createContext({
   isOpen: false,
@@ -10189,10 +10271,14 @@ const controlButtonText = css`
   color: #222;
   text-align: center;
 `;
+const quantityText = css`
+  width: 24px;
+  text-align: center;
+`;
 function PlusMinusButton({ onAddButtonClick, onMinusButtonClick, quantity }) {
   return /* @__PURE__ */ jsxs(ButtonWrapper, { children: [
     /* @__PURE__ */ jsx$1(Button, { css: controlButton, onClick: onMinusButtonClick, children: /* @__PURE__ */ jsx$1(Text, { css: controlButtonText, variant: "body-0", children: "-" }) }),
-    /* @__PURE__ */ jsx$1(Text, { variant: "body-2", children: quantity }),
+    /* @__PURE__ */ jsx$1(Text, { variant: "body-2", css: quantityText, children: quantity }),
     /* @__PURE__ */ jsx$1(Button, { css: controlButton, onClick: onAddButtonClick, children: /* @__PURE__ */ jsx$1(Text, { css: controlButtonText, variant: "body-0", children: "+" }) })
   ] });
 }
@@ -10220,21 +10306,32 @@ const DEFAULT_SORT = "높은 가격순";
 const DEFAULT_FILTER = "전체";
 const CATEGORY = ["전체", "식료품", "패션잡화"];
 const SORT = ["높은 가격순", "낮은 가격순"];
-function useCartItemsQuery() {
-  return useQuery({
-    queryKey: "cartItems",
-    queryFn: CartItemApi.getCartItems
-  });
-}
-function ProductsPage() {
-  const [filter, setFilter] = reactExports.useState(DEFAULT_FILTER);
-  const [sort, setSort] = reactExports.useState(DEFAULT_SORT);
+function useCartItem() {
   const { showError } = useError();
   const { data: products, status: productsStatus } = useQuery({
     queryFn: ProductApi.getAllProducts,
     queryKey: "products"
   });
-  const { data: cartItems, status: cartItemsStatus, refetch: refetchCartItems } = useCartItemsQuery();
+  const {
+    data: cartItems,
+    status: cartItemsStatus,
+    refetch: refetchCartItems
+  } = useQuery({
+    queryFn: CartItemApi.getCartItems,
+    queryKey: "cartItems"
+  });
+  const { mutate: mutatePostCartItem } = useMutation({
+    mutationFn: CartItemApi.postCartItems,
+    queryKey: "cartItems"
+  });
+  const { mutate: mutatePatchCartItem } = useMutation({
+    mutationFn: CartItemApi.patchCartItems,
+    queryKey: "cartItems"
+  });
+  const { mutate: mutateDeleteCartItem } = useMutation({
+    mutationFn: CartItemApi.deleteCartItems,
+    queryKey: "cartItems"
+  });
   const increaseCartItem = async (productId) => {
     const cartItem = cartItems == null ? void 0 : cartItems.content.find((item) => item.product.id === productId);
     const product = products == null ? void 0 : products.content.find((item) => item.id === productId);
@@ -10246,27 +10343,69 @@ function ProductsPage() {
       return;
     }
     if (!cartItem) {
-      await CartItemApi.postCartItems({ productId });
+      await mutatePostCartItem({ productId });
+      await refetchCartItems();
     } else {
-      await CartItemApi.patchCartItems({
-        cartItemId: cartItem.id,
-        quantity: cartItem.quantity + 1
-      });
+      await mutatePatchCartItem(
+        {
+          cartItemId: cartItem.id,
+          quantity: cartItem.quantity + 1
+        },
+        (prev2) => {
+          const currentCartItemIndex = prev2.content.findIndex((item) => item.product.id === productId);
+          const newCartContent = [...prev2.content];
+          newCartContent[currentCartItemIndex] = {
+            ...newCartContent[currentCartItemIndex],
+            quantity: cartItem.quantity + 1
+          };
+          return { ...prev2, content: newCartContent };
+        }
+      );
     }
-    await refetchCartItems();
   };
   const decreaseCartItem = async (productId) => {
     const cartItem = cartItems == null ? void 0 : cartItems.content.find((item) => item.product.id === productId);
-    if (!cartItem) {
-      await CartItemApi.postCartItems({ productId });
-    } else {
-      await CartItemApi.patchCartItems({
-        cartItemId: cartItem.id,
-        quantity: cartItem.quantity - 1
+    if (!cartItem)
+      return;
+    if (!cartItem || cartItem.quantity === 1) {
+      await mutateDeleteCartItem({ cartItemId: cartItem.id }, (prev2) => {
+        const newCartContent = [...prev2.content];
+        return {
+          ...prev2,
+          content: newCartContent.filter((item) => item.product.id !== productId)
+        };
       });
+    } else {
+      await mutatePatchCartItem(
+        {
+          cartItemId: cartItem.id,
+          quantity: cartItem.quantity - 1
+        },
+        (prev2) => {
+          const currentCartItemIndex = prev2.content.findIndex((item) => item.product.id === productId);
+          const newCartContent = [...prev2.content];
+          newCartContent[currentCartItemIndex] = {
+            ...newCartContent[currentCartItemIndex],
+            quantity: cartItem.quantity - 1
+          };
+          return { ...prev2, content: newCartContent };
+        }
+      );
     }
-    await refetchCartItems();
   };
+  return {
+    increaseCartItem,
+    decreaseCartItem,
+    productsStatus,
+    cartItemsStatus,
+    products,
+    cartItems
+  };
+}
+function ProductsPage() {
+  const [filter, setFilter] = reactExports.useState(DEFAULT_FILTER);
+  const [sort, setSort] = reactExports.useState(DEFAULT_SORT);
+  const { increaseCartItem, decreaseCartItem, products, cartItems, productsStatus, cartItemsStatus } = useCartItem();
   const isLoading = productsStatus === "loading" || cartItemsStatus === "loading";
   if (isLoading && !cartItems)
     return /* @__PURE__ */ jsx$1(Spinner, {});
@@ -10284,7 +10423,7 @@ function ProductsPage() {
         ProductCard,
         {
           product,
-          cartItem: cartItems.content.find((item) => item.product.id === product.id),
+          cartItem: cartItems == null ? void 0 : cartItems.content.find((item) => item.product.id === product.id),
           handleIncreaseCartItem: increaseCartItem,
           handleDecreaseCartItem: decreaseCartItem
         },
@@ -10293,7 +10432,7 @@ function ProductsPage() {
     ] })
   ] });
 }
-const Container = newStyled.div`
+const AppWrapper = newStyled.div`
   position: relative;
   width: 100%;
   height: 100%;
@@ -10302,16 +10441,25 @@ const Container = newStyled.div`
   background-color: #fff;
 `;
 function App() {
-  return /* @__PURE__ */ jsx$1(QueryProvider, { children: /* @__PURE__ */ jsx$1(Container, { children: /* @__PURE__ */ jsxs(ErrorProvider, { children: [
+  return /* @__PURE__ */ jsx$1(QueryProvider, { children: /* @__PURE__ */ jsx$1(AppWrapper, { children: /* @__PURE__ */ jsxs(ErrorProvider, { children: [
     /* @__PURE__ */ jsx$1(ErrorPopup, {}),
     /* @__PURE__ */ jsx$1(ProductsPage, {})
   ] }) }) });
 }
 async function enableMocking() {
-  return;
+  const { worker } = await __vitePreload(() => import("./browser-Dv5lAR1O.js"), true ? [] : void 0);
+  return worker.start({
+    serviceWorker: {
+      url: `${"https://guesung.github.io/react-shopping-products"}/mockServiceWorker.js`,
+      options: { scope: "/react-shopping-products" }
+    }
+  });
 }
 enableMocking().then(() => {
   client.createRoot(document.getElementById("root")).render(
     /* @__PURE__ */ jsx$1(React.StrictMode, { children: /* @__PURE__ */ jsx$1(App, {}) })
   );
 });
+export {
+  PATH as P
+};
